@@ -24,10 +24,7 @@ def clean_line(line): return "".join(char.lower() for char in line if char.lower
 
 clean_file_content = "\n".join(clean_line(line) for line in file_content.splitlines() if len(clean_line(line)) != 0)
 
-max_chars_count = max(len(line)+(line.count(' ')) for line in clean_file_content.splitlines())
-
-
-width = max_chars_count * STEP_HEIGHT
+width = max(len(line) * STEP_WIDTH + line.count(' ') * SPACE_EXTRA_WIDTH for line in clean_file_content.splitlines())
 height = len(clean_file_content.splitlines()) * STEP_HEIGHT
 
 image = Image.new("RGBA", (width, height))

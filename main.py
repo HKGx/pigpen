@@ -2,12 +2,13 @@ from string import ascii_lowercase
 from PIL import Image
 from os import getcwd, path
 
-
 CHARACTER_IMAGE_FORMAT = ".png"
 PATH_TO_FILE = "to_convert.txt"
 STEP_WIDTH = 164
 STEP_HEIGHT = 164
 SPACE_EXTRA_WIDTH = 32
+ALPHABET = set(ascii_lowercase)
+CHARACTERS_WITH_CUSTOM_BEHAVIOR = {" ", "\n"}
 
 
 def get_path():
@@ -17,16 +18,20 @@ def get_path():
     return path.join(getcwd(), "characters")
 
 
-all_chars = dict()
+all_characters = dict()
 
-for char in ascii_lowercase:
-    all_chars[char] = Image.open(path.join(get_path(), f"{char}{CHARACTER_IMAGE_FORMAT}"))
+for char in ALPHABET:
+    all_characters[char] = Image.open(path.join(get_path(), f"{char}{CHARACTER_IMAGE_FORMAT}"))
 
 with open(PATH_TO_FILE) as file:
     file_content = file.read()
 
 
-def clean_line(line): return "".join(char.lower() for char in line if char.lower() in ascii_lowercase + " ")
+def clean_line(line): return "".join(char.lower()
+                                     for char
+                                     in line
+                                     if char.lower()
+                                     in ALPHABET | CHARACTERS_WITH_CUSTOM_BEHAVIOR)
 
 
 clean_file_content = "\n".join(clean_line(line) for line in file_content.splitlines() if len(clean_line(line)) != 0)
@@ -36,22 +41,30 @@ height = len(clean_file_content.splitlines()) * STEP_HEIGHT
 
 image = Image.new("RGBA", (width, height))
 
-# I guess that it's not the very pythonic way to do it, but I don't really want to mess up with it.
-
-current_char_index = 0
 current_x = 0
 current_y = 0
 
-while current_char_index < len(clean_file_content):
-    current_char = clean_file_content[current_char_index]
-    if current_char == "\n":
-        current_y += STEP_HEIGHT
-        current_x = 0
-    elif current_char == " ":
-        current_x += STEP_HEIGHT + SPACE_EXTRA_WIDTH
+
+def custom_behavior(character: str):
+    """
+    Define your custom behaviour of characters.
+    First value of tuple defines to what value will current_x change.
+    Second value of tuple defines to what value will current_y change.
+    """
+    if character == "\n":
+        return current_x, STEP_HEIGHT
+    if character == " ":
+        return current_x + STEP_WIDTH + SPACE_EXTRA_WIDTH, current_y
+    return current_x, current_y
+
+
+for current_character in clean_file_content:
+    if current_character in CHARACTERS_WITH_CUSTOM_BEHAVIOR:
+        custom_behavior_result = custom_behavior(current_character)
+        current_x = custom_behavior_result[0]
+        current_y = custom_behavior_result[1]
     else:
-        image.paste(all_chars[current_char], (current_x, current_y))
+        image.paste(all_characters[current_character], (current_x, current_y))
         current_x += STEP_WIDTH
-    current_char_index += 1
 
 image.save("converted.png")

@@ -1,19 +1,26 @@
-from os import getcwd
 from string import ascii_lowercase
 from PIL import Image
+from os import getcwd, path
 
-PATH_TO_CHARACTERS = '\\characters\\'
+
+CHARACTER_IMAGE_FORMAT = ".png"
 PATH_TO_FILE = "to_convert.txt"
 STEP_WIDTH = 164
 STEP_HEIGHT = 164
 SPACE_EXTRA_WIDTH = 32
 
-cwd = getcwd()
+
+def get_path():
+    """
+    You can implement your own way to obtain path.
+    """
+    return path.join(getcwd(), "characters")
+
 
 all_chars = dict()
 
 for char in ascii_lowercase:
-    all_chars[char] = Image.open(f"{cwd}{PATH_TO_CHARACTERS}{char}.png")
+    all_chars[char] = Image.open(path.join(get_path(), f"{char}{CHARACTER_IMAGE_FORMAT}"))
 
 with open(PATH_TO_FILE) as file:
     file_content = file.read()
